@@ -61,7 +61,6 @@ class PlaceholderRenderer:
             font = cls.get_font(min(14, max(10, height // 3)))
             if font:
                 text_surf = font.render(label, True, COLOR_WHITE)
-                # Shadow
                 shadow_surf = font.render(label, True, COLOR_BLACK)
                 text_rect = text_surf.get_rect(center=(width // 2, height // 2))
                 surf.blit(shadow_surf, (text_rect.x + 1, text_rect.y + 1))
@@ -91,6 +90,7 @@ class AssetLoader:
     """Central asset manager with caching and fallback support."""
     _image_cache = {}
     _sound_cache = {}
+    _spritesheet_cache = {}
 
     @classmethod
     def load_image(cls, relative_path: str, size: tuple = None, fallback_color: tuple = (200, 200, 200), label: str = "") -> pygame.Surface:
@@ -102,7 +102,9 @@ class AssetLoader:
         full_path = os.path.join(os.getcwd(), relative_path)
         if os.path.exists(full_path) and os.path.isfile(full_path):
             try:
-                surf = pygame.image.load(full_path).convert_alpha()
+                surf = pygame.image.load(full_path)
+                if pygame.display.get_surface() is not None:
+                    surf = surf.convert_alpha()
                 if size and size != surf.get_size():
                     surf = pygame.transform.smoothscale(surf, size)
                 cls._image_cache[cache_key] = surf
@@ -116,6 +118,54 @@ class AssetLoader:
         surf = PlaceholderRenderer.create_placeholder_surface(width, height, fallback_color, display_label)
         cls._image_cache[cache_key] = surf
         return surf
+
+    @classmethod
+    def load_spritesheet(cls, relative_path: str, frame_width: int, frame_height: int, num_frames: int, colorkey: tuple = None, fallback_color: tuple = (200, 200, 200), label_prefix: str = "FRAME") -> list:
+        """
+        Loads a horizontal spritesheet, slices it into frame_width x frame_height frames,
+        applies colorkey transparency if specified, and returns a list of Pygame Surfaces.
+        Generates fallback placeholders if file is missing.
+        """
+        cache_key = (relative_path, frame_width, frame_height, num_frames, colorkey, fallback_color, label_prefix)
+        if cache_key in cls._spritesheet_cache:
+            return cls._spritesheet_cache[cache_key]
+
+        full_path = os.path.join(os.getcwd(), relative_path)
+        frames = []
+
+        if os.path.exists(full_path) and os.path.isfile(full_path):
+            try:
+                sheet = pygame.image.load(full_path)
+                for i in range(num_frames):
+                    frame_rect = pygame.Rect(i * frame_width, 0, frame_width, frame_height)
+                    
+                    frame_surf = pygame.Surface((frame_width, frame_height))
+                    frame_surf.blit(sheet, (0, 0), frame_rect)
+
+                    if colorkey is not None:
+                        frame_surf.set_colorkey(colorkey)
+                    
+                    if pygame.display.get_surface() is not None:
+                        try:
+                            frame_surf = frame_surf.convert_alpha()
+                        except Exception:
+                            pass
+
+                    frames.append(frame_surf)
+
+                cls._spritesheet_cache[cache_key] = frames
+                return frames
+            except Exception as e:
+                print(f"[AssetLoader] Warning: Failed to load spritesheet {full_path}: {e}. Using placeholders.")
+
+        # Fallback placeholders for missing spritesheet
+        for i in range(num_frames):
+            display_label = f"{label_prefix}_{i}"
+            frame_surf = PlaceholderRenderer.create_placeholder_surface(frame_width, frame_height, fallback_color, display_label)
+            frames.append(frame_surf)
+
+        cls._spritesheet_cache[cache_key] = frames
+        return frames
 
     @classmethod
     def load_sound(cls, relative_path: str) -> object:

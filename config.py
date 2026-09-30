@@ -11,6 +11,11 @@ SCREEN_HEIGHT = 720
 FPS = 60
 TITLE = "Lampião Adventures: The Busca of The Catita"
 
+# Zoom / Render Scale factor (Player occupies ~1/6th of screen height)
+RENDER_SCALE = 2.4
+VIRTUAL_WIDTH = int(SCREEN_WIDTH / RENDER_SCALE)    # 533 px
+VIRTUAL_HEIGHT = int(SCREEN_HEIGHT / RENDER_SCALE)  # 300 px
+
 # Colors (Sertão / Backlands Palette)
 COLOR_BACKGROUND = (245, 222, 179)     # Sertão Warm Sand / Wheat
 COLOR_SKY = (255, 218, 185)            # Peach Sunset Sky
@@ -44,16 +49,16 @@ COLOR_DIALOGUE_BORDER = (212, 175, 55) # Gold Border
 # Physics & Player Constants
 GRAVITY = 0.8
 MAX_FALL_SPEED = 15.0
-PLAYER_SPEED = 5.0
-PLAYER_SPRINT_SPEED = 8.5
-PLAYER_JUMP_FORCE = -15.5
+PLAYER_SPEED = 4.5
+PLAYER_SPRINT_SPEED = 7.5
+PLAYER_JUMP_FORCE = -14.5
 MAX_HEALTH = 100
 MAX_STAMINA = 100.0
 STAMINA_DRAIN = 0.75
 STAMINA_RECHARGE = 0.4
-STAMINA_RECHARGE_DELAY = 30  # frames before recharge starts after full drain
+STAMINA_RECHARGE_DELAY = 30
 
-# Level Dimensions (Large 6000x720 horizontal traversal ~2.5-3 min pacing)
+# Level Dimensions (6000x720 horizontal map)
 LEVEL_WIDTH = 6000
 LEVEL_HEIGHT = 720
 TILE_SIZE = 40
@@ -64,5 +69,6 @@ KEY_RIGHT = [pygame.K_d, pygame.K_RIGHT]
 KEY_JUMP = [pygame.K_w, pygame.K_SPACE, pygame.K_UP]
 KEY_SPRINT = [pygame.K_LSHIFT, pygame.K_RSHIFT]
 KEY_INTERACT = [pygame.K_e]
+KEY_SHOOT = [pygame.K_j, pygame.K_f, pygame.K_k, pygame.K_LCTRL]
 KEY_PAUSE = [pygame.K_ESCAPE, pygame.K_p]
 KEY_CONFIRM = [pygame.K_RETURN, pygame.K_SPACE, pygame.K_e]

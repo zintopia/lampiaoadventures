@@ -1,12 +1,11 @@
 """
 Dialogue Box UI Component.
-Modal dialogue renderer with portrait placeholder, speaker name header,
-typewriter text effect, and page navigation controls.
+Modal dialogue renderer scaled for virtual resolution.
 """
 
 import pygame
 from config import (
-    SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_WHITE, COLOR_BLACK, COLOR_DIALOGUE_BG,
+    VIRTUAL_WIDTH, VIRTUAL_HEIGHT, COLOR_WHITE, COLOR_BLACK, COLOR_DIALOGUE_BG,
     COLOR_DIALOGUE_BORDER, COLOR_STAMINA_YELLOW, KEY_CONFIRM
 )
 from src.utils.asset_loader import AssetLoader
@@ -27,11 +26,11 @@ class DialogueBox:
         self.on_complete_callback = None
         self.portrait_surf = None
 
-        self.font_speaker = pygame.font.SysFont("arial", 18, bold=True)
-        self.font_text = pygame.font.SysFont("arial", 16)
-        self.font_prompt = pygame.font.SysFont("arial", 12, italic=True)
+        self.font_speaker = pygame.font.SysFont("arial", 13, bold=True)
+        self.font_text = pygame.font.SysFont("arial", 11)
+        self.font_prompt = pygame.font.SysFont("arial", 9, italic=True)
 
-        self.box_rect = pygame.Rect(100, SCREEN_HEIGHT - 180, SCREEN_WIDTH - 200, 140)
+        self.box_rect = pygame.Rect(20, VIRTUAL_HEIGHT - 85, VIRTUAL_WIDTH - 40, 75)
 
     def start_dialogue(self, speaker_name: str, pages: list, on_complete=None, portrait_label: str = ""):
         """Starts a dialogue sequence."""
@@ -44,7 +43,7 @@ class DialogueBox:
         lbl = portrait_label if portrait_label else speaker_name[:4].upper()
         self.portrait_surf = AssetLoader.load_image(
             relative_path=f"assets/sprites/portraits/{speaker_name.lower().replace(' ', '_')}.png",
-            size=(90, 90),
+            size=(50, 50),
             fallback_color=(46, 139, 87),
             label=lbl
         )
@@ -62,12 +61,10 @@ class DialogueBox:
     def advance(self):
         """Advance typewriter text or switch to next page."""
         if not self.is_text_complete:
-            # Skip typewriter to full text
             self.displayed_text = self.full_text
             self.char_idx = float(len(self.full_text))
             self.is_text_complete = True
         else:
-            # Move to next page
             self.current_page_idx += 1
             if self.current_page_idx < len(self.pages):
                 self._load_current_page()
@@ -109,40 +106,34 @@ class DialogueBox:
         if not self.is_active:
             return
 
-        # Semi-transparent dialogue box background
         bg_surf = pygame.Surface((self.box_rect.width, self.box_rect.height), pygame.SRCALPHA)
         bg_surf.fill(COLOR_DIALOGUE_BG)
         screen.blit(bg_surf, self.box_rect.topleft)
 
-        # Border
-        pygame.draw.rect(screen, COLOR_DIALOGUE_BORDER, self.box_rect, width=3, border_radius=8)
+        pygame.draw.rect(screen, COLOR_DIALOGUE_BORDER, self.box_rect, width=2, border_radius=6)
 
-        # Portrait Thumbnail
         if self.portrait_surf:
-            p_rect = self.portrait_surf.get_rect(topleft=(self.box_rect.x + 25, self.box_rect.y + 25))
+            p_rect = self.portrait_surf.get_rect(topleft=(self.box_rect.x + 12, self.box_rect.y + 12))
             screen.blit(self.portrait_surf, p_rect)
-            pygame.draw.rect(screen, COLOR_DIALOGUE_BORDER, p_rect, width=2)
+            pygame.draw.rect(screen, COLOR_DIALOGUE_BORDER, p_rect, width=1)
 
-        # Speaker Name Header
-        name_x = self.box_rect.x + 135
+        name_x = self.box_rect.x + 72
         name_txt = self.font_speaker.render(self.speaker_name, True, COLOR_STAMINA_YELLOW)
-        screen.blit(name_txt, (name_x, self.box_rect.y + 18))
+        screen.blit(name_txt, (name_x, self.box_rect.y + 8))
 
-        # Divider line
-        pygame.draw.line(screen, (100, 100, 100), (name_x, self.box_rect.y + 45), (self.box_rect.right - 25, self.box_rect.y + 45), 1)
+        pygame.draw.line(screen, (100, 100, 100), (name_x, self.box_rect.y + 24), (self.box_rect.right - 12, self.box_rect.y + 24), 1)
 
-        # Typewriter Dialogue Text (with word wrap handling)
-        text_y = self.box_rect.y + 55
+        text_y = self.box_rect.y + 28
         words = self.displayed_text.split(" ")
         line = ""
-        max_width = self.box_rect.width - 160
+        max_width = self.box_rect.width - 90
 
         for word in words:
             test_line = line + word + " "
             if self.font_text.size(test_line)[0] > max_width:
                 line_surf = self.font_text.render(line, True, COLOR_WHITE)
                 screen.blit(line_surf, (name_x, text_y))
-                text_y += 22
+                text_y += 14
                 line = word + " "
             else:
                 line = test_line
@@ -151,8 +142,7 @@ class DialogueBox:
             line_surf = self.font_text.render(line, True, COLOR_WHITE)
             screen.blit(line_surf, (name_x, text_y))
 
-        # Bottom-right continuation prompt indicator
         prompt_str = "Pressione [ESPAÇO] ou [E] para continuar..." if self.is_text_complete else "..."
         prompt_txt = self.font_prompt.render(prompt_str, True, (200, 200, 200))
-        prompt_rect = prompt_txt.get_rect(bottomright=(self.box_rect.right - 20, self.box_rect.bottom - 12))
+        prompt_rect = prompt_txt.get_rect(bottomright=(self.box_rect.right - 10, self.box_rect.bottom - 6))
         screen.blit(prompt_txt, prompt_rect)

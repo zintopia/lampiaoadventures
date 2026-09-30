@@ -6,8 +6,8 @@ Renders main menu title, animated backlands aesthetic elements, and interactive 
 import math
 import pygame
 from config import (
-    SCREEN_WIDTH, SCREEN_HEIGHT, COLOR_WHITE, COLOR_BLACK, COLOR_STAMINA_YELLOW,
-    COLOR_SUN, COLOR_GROUND, COLOR_DIALOGUE_BG, COLOR_DIALOGUE_BORDER
+    VIRTUAL_WIDTH, VIRTUAL_HEIGHT, COLOR_WHITE, COLOR_BLACK, COLOR_STAMINA_YELLOW,
+    COLOR_SUN, COLOR_GROUND, COLOR_DIALOGUE_BORDER
 )
 
 class MenuButton:
@@ -16,7 +16,7 @@ class MenuButton:
         self.text = text
         self.action = action
         self.is_hovered = False
-        self.font = pygame.font.SysFont("arial", 22, bold=True)
+        self.font = pygame.font.SysFont("arial", 13, bold=True)
 
     def update(self, mouse_pos):
         self.is_hovered = self.rect.collidepoint(mouse_pos)
@@ -25,15 +25,12 @@ class MenuButton:
         bg_color = (200, 100, 30) if self.is_hovered else (40, 40, 45)
         border_color = COLOR_STAMINA_YELLOW if self.is_hovered else (100, 100, 100)
         
-        # Shadow
-        shadow_rect = self.rect.move(4, 4)
-        pygame.draw.rect(screen, (20, 20, 20), shadow_rect, border_radius=8)
+        shadow_rect = self.rect.move(2, 2)
+        pygame.draw.rect(screen, (20, 20, 20), shadow_rect, border_radius=4)
 
-        # Button Body
-        pygame.draw.rect(screen, bg_color, self.rect, border_radius=8)
-        pygame.draw.rect(screen, border_color, self.rect, width=3, border_radius=8)
+        pygame.draw.rect(screen, bg_color, self.rect, border_radius=4)
+        pygame.draw.rect(screen, border_color, self.rect, width=2, border_radius=4)
 
-        # Text
         txt_color = COLOR_WHITE if self.is_hovered else (220, 220, 220)
         txt_surf = self.font.render(self.text, True, txt_color)
         txt_rect = txt_surf.get_rect(center=self.rect.center)
@@ -44,16 +41,16 @@ class MenuUI:
         self.start_callback = start_callback
         self.quit_callback = quit_callback
 
-        self.font_title = pygame.font.SysFont("arial", 48, bold=True)
-        self.font_subtitle = pygame.font.SysFont("arial", 22, italic=True)
-        self.font_footer = pygame.font.SysFont("arial", 14)
+        self.font_title = pygame.font.SysFont("arial", 26, bold=True)
+        self.font_subtitle = pygame.font.SysFont("arial", 12, italic=True)
+        self.font_footer = pygame.font.SysFont("arial", 10)
 
-        btn_w, btn_h = 280, 56
-        center_x = SCREEN_WIDTH // 2 - btn_w // 2
+        btn_w, btn_h = 180, 34
+        center_x = VIRTUAL_WIDTH // 2 - btn_w // 2
 
         self.buttons = [
-            MenuButton(center_x, 340, btn_w, btn_h, "[1] INICIAR JOGO", start_callback),
-            MenuButton(center_x, 420, btn_w, btn_h, "[2] SAIR DO JOGO", quit_callback)
+            MenuButton(center_x, 145, btn_w, btn_h, "[1] INICIAR JOGO", start_callback),
+            MenuButton(center_x, 190, btn_w, btn_h, "[2] SAIR DO JOGO", quit_callback)
         ]
 
         self.selected_idx = 0
@@ -85,33 +82,32 @@ class MenuUI:
                 btn.is_hovered = True
 
     def render(self, screen: pygame.Surface):
-        # Sertão Sky & Sun background decoration
         screen.fill((255, 218, 185))
         
         # Sun
-        sun_y = int(220 + math.sin(self.anim_timer * 0.8) * 10)
-        pygame.draw.circle(screen, COLOR_SUN, (SCREEN_WIDTH // 2, sun_y), 140)
+        sun_y = int(90 + math.sin(self.anim_timer * 0.8) * 5)
+        pygame.draw.circle(screen, COLOR_SUN, (VIRTUAL_WIDTH // 2, sun_y), 65)
 
         # Ground silhouette
-        pygame.draw.rect(screen, COLOR_GROUND, (0, 560, SCREEN_WIDTH, 160))
+        pygame.draw.rect(screen, COLOR_GROUND, (0, 240, VIRTUAL_WIDTH, 60))
 
         # Title Card Panel
-        title_box = pygame.Rect(SCREEN_WIDTH // 2 - 380, 70, 760, 180)
+        title_box = pygame.Rect(VIRTUAL_WIDTH // 2 - 180, 25, 360, 95)
         bg_surf = pygame.Surface((title_box.width, title_box.height), pygame.SRCALPHA)
         bg_surf.fill((20, 20, 25, 220))
         screen.blit(bg_surf, title_box.topleft)
-        pygame.draw.rect(screen, COLOR_DIALOGUE_BORDER, title_box, width=3, border_radius=12)
+        pygame.draw.rect(screen, COLOR_DIALOGUE_BORDER, title_box, width=2, border_radius=6)
 
         # Main Title
         title_txt = self.font_title.render("LAMPIÃO ADVENTURES", True, COLOR_STAMINA_YELLOW)
         shadow_txt = self.font_title.render("LAMPIÃO ADVENTURES", True, COLOR_BLACK)
-        t_rect = title_txt.get_rect(center=(SCREEN_WIDTH // 2, 130))
-        screen.blit(shadow_txt, (t_rect.x + 3, t_rect.y + 3))
+        t_rect = title_txt.get_rect(center=(VIRTUAL_WIDTH // 2, 55))
+        screen.blit(shadow_txt, (t_rect.x + 2, t_rect.y + 2))
         screen.blit(title_txt, t_rect)
 
         # Subtitle
         sub_txt = self.font_subtitle.render("A Busca da Catita Perdida no Sertão", True, COLOR_WHITE)
-        sub_rect = sub_txt.get_rect(center=(SCREEN_WIDTH // 2, 190))
+        sub_rect = sub_txt.get_rect(center=(VIRTUAL_WIDTH // 2, 90))
         screen.blit(sub_txt, sub_rect)
 
         # Buttons
@@ -120,5 +116,5 @@ class MenuUI:
 
         # Footer instructions
         footer_txt = self.font_footer.render("Use MOUSE ou TECLAS [1] / [2] / [ENTER] para navegar", True, COLOR_WHITE)
-        f_rect = footer_txt.get_rect(center=(SCREEN_WIDTH // 2, 680))
+        f_rect = footer_txt.get_rect(center=(VIRTUAL_WIDTH // 2, 282))
         screen.blit(footer_txt, f_rect)
